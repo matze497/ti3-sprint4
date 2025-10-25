@@ -1,38 +1,209 @@
-<div class="card flex ">
-    <p-multiselect [options]="funcao" [(ngModel)]="selectedCities" optionLabel="name" placeholder="Filtrar " [maxSelectedLabels]="3" class="w-full md:w-80" />
-</div>
-<div class="mb-4 p-6 flex items-center ">
-    <p-card [style]="{ width: '25rem', overflow: 'hidden' }">
-        <ng-template #header>
-            <img alt="Card" class="w-full" src="https://primefaces.org/cdn/primeng/images/card-ng.jpg" />
-        </ng-template>
-        <ng-template #title> Pessoa 01 </ng-template>
-        <ng-template #subtitle> função </ng-template>
-        <p>
-            Lorem ipsum dolor sit amet, consectetur adipisicing elit. Inventore sed consequuntur error repudiandae numquam deserunt
-            quisquam repellat libero asperiores earum nam nobis, culpa ratione quam perferendis esse, cupiditate neque quas!
-        </p>
-        <ng-template #footer>
-            <div class="flex gap-4 mt-1">
-                <p-button label="Editar" severity="secondary" class="w-full" [outlined]="true" styleClass="w-full" />
+<p-toast />
+<main>
+  <p-toolbar>
+    <ng-template #start>
+      <p-button
+        label="Cadastrar Pessoa"
+        icon="pi pi-plus"
+        (click)="abrirModalCadastrarPessoa()"
+      ></p-button>
+    </ng-template>
+  </p-toolbar>
+
+  <div class="flex gap-4 flex-wrap pt-4 overflow-y-auto grow max-h-[calc(100dvh-250px)]">
+    @for (pessoa of pessoasPaginadas; track pessoa.id) {
+      <p-card [style]="{ width: '25rem', overflow: 'hidden' }">
+        <ng-template #title>
+          <section class="flex justify-between items-center">
+            <div>
+              <p-avatar icon="pi pi-user" class="mr-2" size="large" shape="circle" />
+              <span>{{ pessoa.nome }}</span>
             </div>
+            <p-button
+              icon="pi pi-pen-to-square"
+              [text]="true"
+              severity="secondary"
+              [rounded]="true"
+              (click)="abrirModalEditarPessoa(pessoa)"
+            ></p-button>
+          </section>
         </ng-template>
-        
-    </p-card>
-        <p-card [style]="{ width: '25rem', overflow: 'hidden' }">
-        <ng-template #header>
-            <img alt="Card" class="w-full" src="https://primefaces.org/cdn/primeng/images/card-ng.jpg" />
-        </ng-template>
-        <ng-template #title> Pessoa 02 </ng-template>
-        <ng-template #subtitle> função </ng-template>
-        <p>
-            Lorem ipsum dolor sit amet, consectetur adipisicing elit. Inventore sed consequuntur error repudiandae numquam deserunt
-            quisquam repellat libero asperiores earum nam nobis, culpa ratione quam perferendis esse, cupiditate neque quas!
-        </p>
-        <ng-template #footer>
-            <div class="flex gap-4 mt-1">
-                <p-button label="Editar" severity="secondary" class="w-full" [outlined]="true" styleClass="w-full" />
-            </div>
-        </ng-template>
-    </p-card>
-</div>
+        <div>
+          <p><strong>Função:</strong> {{ pessoa.origem }}</p>
+          <p><strong>{{ isCpf(pessoa.cpfCnpj) ? 'CPF' : 'CNPJ' }}:</strong>
+            {{ isCpf(pessoa.cpfCnpj) ? (pessoa.cpfCnpj | cpf) : pessoa.cpfCnpj }}
+          </p>
+          @if (pessoa.dataNascimento) {
+            <p><strong>Data de Nascimento:</strong> {{ pessoa.dataNascimento | date: 'dd/MM/yyyy' }}</p>
+          }
+        </div>
+      </p-card>
+    }
+  </div>
+
+  <div class="pt-4">
+    <p-paginator
+      [first]="first"
+      [rows]="rows"
+      [totalRecords]="pessoas.length"
+      [rowsPerPageOptions]="[6, 12, 18]"
+      (onPageChange)="onPageChange($event)"
+    ></p-paginator>
+  </div>
+
+  <p-dialog
+    header="Cadastrar Nova Pessoa"
+    (onHide)="esconderCadastrarPessoaModal(cadastrarPessoaForm)"
+    [modal]="true"
+    [(visible)]="modalCadastrarPessoaAberto"
+    [draggable]="false"
+    [style]="{ width: '35rem' }"
+  >
+    <form
+      #cadastrarPessoaForm="ngForm"
+      class="flex flex-col w-full items-center space-y-4"
+      (ngSubmit)="enviarCadastrarPessoaForm(cadastrarPessoaForm)"
+    >
+      <p-fieldset legend="Dados Pessoais">
+        <div class="pb-2 w-full">
+          <p-iconfield>
+            <p-inputicon class="pi pi-user"></p-inputicon>
+            <input
+              ngModel
+              required
+              name="nome"
+              fluid
+              type="text"
+              placeholder="Nome completo..."
+              pInputText
+            />
+          </p-iconfield>
+        </div>
+
+        <div class="w-full pb-2">
+          <label for="origem" class="block mb-2">Função:</label>
+          <p-dropdown
+            ngModel
+            required
+            name="origem"
+            [options]="funcoes"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Selecione a função"
+            [style]="{ width: '100%' }"
+          />
+        </div>
+
+        <div class="w-full flex gap-2">
+          <p-iconfield>
+            <p-inputicon class="pi pi-id-card"></p-inputicon>
+            <input
+              ngModel
+              required
+              name="cpfCnpj"
+              fluid
+              type="text"
+              placeholder="CPF ou CNPJ..."
+              pInputText
+            />
+          </p-iconfield>
+          <p-datepicker
+            placeholder="Data de Nascimento"
+            name="dataNascimento"
+            ngModel
+            [showIcon]="true"
+            appendTo="body"
+          ></p-datepicker>
+        </div>
+      </p-fieldset>
+
+      <button
+        class="w-36"
+        pButton
+        severity="primary"
+        type="submit"
+        [disabled]="cadastrarPessoaForm.invalid"
+      >
+        Cadastrar
+      </button>
+    </form>
+  </p-dialog>
+
+  <p-dialog
+    header="Editar Pessoa"
+    (onHide)="esconderEditarPessoaModal(editarPessoaForm)"
+    [modal]="true"
+    [(visible)]="modalEditarPessoaAberto"
+    [draggable]="false"
+    [style]="{ width: '35rem' }"
+  >
+    <form
+      #editarPessoaForm="ngForm"
+      class="flex flex-col w-full items-center space-y-4"
+      (ngSubmit)="enviarEditarPessoaForm(editarPessoaForm)"
+    >
+      <p-fieldset legend="Dados Pessoais">
+        <div class="pb-2 w-full">
+          <p-iconfield>
+            <p-inputicon class="pi pi-user"></p-inputicon>
+            <input
+              [(ngModel)]="pessoaSelecionada!.nome"
+              required
+              name="nome"
+              fluid
+              type="text"
+              placeholder="Nome completo..."
+              pInputText
+            />
+          </p-iconfield>
+        </div>
+
+        <div class="w-full pb-2">
+          <label for="origem" class="block mb-2">Função:</label>
+          <p-dropdown
+            [(ngModel)]="pessoaSelecionada!.origem"
+            required
+            name="origem"
+            [options]="funcoes"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Selecione a função"
+            [style]="{ width: '100%' }"
+          />
+        </div>
+
+        <div class="w-full flex gap-2">
+          <p-iconfield>
+            <p-inputicon class="pi pi-id-card"></p-inputicon>
+            <input
+              [(ngModel)]="pessoaSelecionada!.cpfCnpj"
+              required
+              name="cpfCnpj"
+              fluid
+              type="text"
+              placeholder="CPF ou CNPJ..."
+              pInputText
+            />
+          </p-iconfield>
+          <p-datepicker
+            placeholder="Data de Nascimento"
+            name="dataNascimento"
+            [(ngModel)]="pessoaSelecionada!.dataNascimento"
+            [showIcon]="true"
+            appendTo="body"
+          ></p-datepicker>
+        </div>
+      </p-fieldset>
+
+      <button
+        class="w-36"
+        pButton
+        severity="primary"
+        type="submit"
+        [disabled]="editarPessoaForm.invalid"
+      >
+        Salvar
+      </button>
+    </form>
+  </p-dialog>
+</main>

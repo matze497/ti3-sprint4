@@ -11,6 +11,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 public class PessoaServiceImpl implements PessoaService {
@@ -54,5 +57,12 @@ public class PessoaServiceImpl implements PessoaService {
         Pessoa pessoaAtualizada = pessoaRepository.save(pessoa);
 
         return new PessoaResponseDTO(pessoaAtualizada);
+    }
+
+    @Override
+    public List<PessoaResponseDTO> buscarTodasPessoas() {
+        return pessoaRepository.findAll().stream()
+                .map(PessoaResponseDTO::new)
+                .collect(Collectors.toList());
     }
 }
